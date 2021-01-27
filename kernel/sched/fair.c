@@ -7152,7 +7152,7 @@ int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 				     int sync, int sibling_count_hint)
 {
 	unsigned long prev_delta = ULONG_MAX, best_delta = ULONG_MAX;
-	struct root_domain *rd = cpu_rq(smp_processor_id())->rd;
+	struct root_domain *rd = cpu_rq(cpumask_first(cpu_active_mask))->rd;
 	int weight, cpu = smp_processor_id(), best_energy_cpu = prev_cpu;
 	struct perf_domain *pd;
 	unsigned long cur_energy;
