@@ -676,45 +676,26 @@ static int reupdata_threshold(struct extcon_dev_data *chip)
 			chip->dhall_data1 - tolen, chip->dhall_data1 + tolen);
 		}
 		oplus_hall_clear_irq(DHALL_1);
-		if (chip->dhall_data0 < 0 || chip->dhall_data1 < 0) {
-			res = oplus_hall_update_threshold(DHALL_0, MID_STATE,
-			chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
-			if (res < 0) {
-				TRI_KEY_LOG("updata_threshold fail:%d\n", res);
-				goto fail;
-			}
-		TRI_KEY_LOG("tri_key:updata_threshold down:low:%d,high:%d\n",
-		chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
-		} else {
-			res = oplus_hall_update_threshold(DHALL_0, MID_STATE,
-			chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
-			if (res < 0) {
-				TRI_KEY_LOG("updata_threshold fail:%d\n", res);
-				goto fail;
-			}
-		TRI_KEY_LOG("tri_key:updata_threshold down:low:%d,high:%d\n",
-			chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
-		}
 		oplus_hall_clear_irq(DHALL_0);
 		break;
 	case DOWN_STATE:
-		res = oplus_hall_update_threshold(DHALL_0, DOWN_STATE,
-			chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
+		res = oplus_hall_update_threshold(DHALL_1, DOWN_STATE,
+			chip->dhall_data1 - tolen, chip->dhall_data1 + tolen);
 		if (res < 0) {
 			TRI_KEY_LOG("updata_threshold fail:%d\n", res);
 			goto fail;
 		}
 		TRI_KEY_LOG("tri_key:updata_threshold down:low:%d,high:%d\n",
 			chip->dhall_data0 - tolen, chip->dhall_data0 + tolen);
-		res = oplus_hall_update_threshold(DHALL_1, DOWN_STATE,
+		res = oplus_hall_update_threshold(DHALL_0, DOWN_STATE,
 			-500, 500);
 		if (res < 0) {
 			TRI_KEY_LOG("updata_threshold fail:%d\n", res);
 			goto fail;
 		}
 
-		oplus_hall_clear_irq(DHALL_0);
 		oplus_hall_clear_irq(DHALL_1);
+		oplus_hall_clear_irq(DHALL_0);
 		break;
 		}
 fail:
