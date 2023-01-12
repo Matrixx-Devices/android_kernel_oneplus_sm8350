@@ -226,6 +226,11 @@ struct compact_control {
 	bool rescan;			/* Rescanning the same pageblock */
 };
 
+struct compact_control_ext {
+	struct compact_control *cc;
+	unsigned int nr_migrate_file_pages;	/* Number of file pages to migrate */
+};
+
 /*
  * Used in direct compaction when a page should be taken from the freelists
  * immediately when one is created during the free path.
