@@ -288,6 +288,8 @@ endif
 
 EXTRA_CFLAGS += -Wno-unused-variable
 
+EXTRA_CFLAGS += -Wno-unused-variable
+
 ifeq ($(KERNEL_BUILD), 0)
 KBUILD_EXTRA_SYMBOLS +=$(OUT)/obj/vendor/qcom/opensource/audio-kernel/dsp/Module.symvers
 KBUILD_EXTRA_SYMBOLS +=$(OUT)/obj/vendor/qcom/opensource/audio-kernel/asoc/codecs/Module.symvers
