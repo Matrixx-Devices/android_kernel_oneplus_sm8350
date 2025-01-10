@@ -1856,15 +1856,25 @@ static inline bool may_mandlock(void)
 }
 #endif
 
+#ifdef CONFIG_KSU
+/**
+ * path_mounted - check whether path is mounted
+ * @path: path to check
+ *
+ * Determine whether @path refers to the root of a mount.
+ *
+ * Return: true if @path is the root of a mount, false if not.
+ */
+static inline bool path_mounted(const struct path *path)
+{
+	return path->mnt->mnt_root == path->dentry;
+}
 static int can_umount(const struct path *path, int flags)
 {
 	struct mount *mnt = real_mount(path->mnt);
-
-	if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))
-		return -EINVAL;
 	if (!may_mount())
 		return -EPERM;
-	if (path->dentry != path->mnt->mnt_root)
+	if (!path_mounted(path))
 		return -EINVAL;
 	if (!check_mnt(mnt))
 		return -EINVAL;
@@ -1874,21 +1884,21 @@ static int can_umount(const struct path *path, int flags)
 		return -EPERM;
 	return 0;
 }
-
+// caller is responsible for flags being sane
 int path_umount(struct path *path, int flags)
 {
 	struct mount *mnt = real_mount(path->mnt);
 	int ret;
-
 	ret = can_umount(path, flags);
 	if (!ret)
 		ret = do_umount(mnt, flags);
-
 	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
 	dput(path->dentry);
 	mntput_no_expire(mnt);
 	return ret;
 }
+#endif
+
 /*
  * Now umount can handle mount points as well as block devices.
  * This is important for filesystems which use unnamed block devices.
@@ -2739,27 +2749,20 @@ static void mnt_warn_timestamp_expiry(struct path *mountpoint, struct vfsmount *
 	struct super_block *sb = mnt->mnt_sb;
 
 	if (!__mnt_is_readonly(mnt) &&
-	   (!(sb->s_iflags & SB_I_TS_EXPIRY_WARNED)) &&
 	   (ktime_get_real_seconds() + TIME_UPTIME_SEC_MAX > sb->s_time_max)) {
-		char *buf, *mntpath;
+		char *buf = (char *)__get_free_page(GFP_KERNEL);
+		char *mntpath = buf ? d_path(mountpoint, buf, PAGE_SIZE) : ERR_PTR(-ENOMEM);
+		struct tm tm;
 
-		buf = (char *)__get_free_page(GFP_KERNEL);
-		if (buf)
-			mntpath = d_path(mountpoint, buf, PAGE_SIZE);
-		else
-			mntpath = ERR_PTR(-ENOMEM);
-		if (IS_ERR(mntpath))
-			mntpath = "(unknown)";
+		time64_to_tm(sb->s_time_max, 0, &tm);
 
-		pr_warn("%s filesystem being %s at %s supports timestamps until %ptTd (0x%llx)\n",
+		pr_warn("%s filesystem being %s at %s supports timestamps until %04ld (0x%llx)\n",
 			sb->s_type->name,
 			is_mounted(mnt) ? "remounted" : "mounted",
-			mntpath, &sb->s_time_max,
-			(unsigned long long)sb->s_time_max);
+			mntpath,
+			tm.tm_year+1900, (unsigned long long)sb->s_time_max);
 
-		sb->s_iflags |= SB_I_TS_EXPIRY_WARNED;
-		if (buf)
-			free_page((unsigned long)buf);
+		free_page((unsigned long)buf);
 	}
 }
 
