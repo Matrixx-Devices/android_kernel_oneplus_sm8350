@@ -451,6 +451,8 @@ static const char * const fw_path[] = {
 	"/odm/etc/wifi",
 #endif /* CONFIG_OPLUS_FEATURE_WIFI_BDF2 */
 	fw_path_para,
+	"/odm/firmware",
+	"/vendor/firmware",
 	"/lib/firmware/updates/" UTS_RELEASE,
 	"/lib/firmware/updates",
 	"/lib/firmware/" UTS_RELEASE,
