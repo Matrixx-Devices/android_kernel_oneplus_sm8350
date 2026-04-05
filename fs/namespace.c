@@ -1703,6 +1703,7 @@ static inline bool path_mounted(const struct path *path)
 {
 	return path->mnt->mnt_root == path->dentry;
 }
+
 static int can_umount(const struct path *path, int flags)
 {
 	struct mount *mnt = real_mount(path->mnt);
@@ -1718,6 +1719,7 @@ static int can_umount(const struct path *path, int flags)
 		return -EPERM;
 	return 0;
 }
+
 // caller is responsible for flags being sane
 int path_umount(struct path *path, int flags)
 {
