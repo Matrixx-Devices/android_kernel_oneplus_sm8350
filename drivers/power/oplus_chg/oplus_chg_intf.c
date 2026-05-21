@@ -1569,10 +1569,12 @@ static int oplus_chg_intf_batt_get_prop(struct oplus_chg_mod *ocm,
 		break;
 	case OPLUS_CHG_PROP_TIME_TO_FULL_NOW:
 		rc = oplus_gauge_get_batt_ttf();
-		if (rc < 0)
-			pval->intval = -1;
-		else
+		if (rc < 0) {
+			pval->intval = 0; // Když se nenabíjí, vrátíme do systému prostě 0 minut
+			return 0;        // Okamžitě ukončíme metodu s úspěchem, ignorujeme globální "if (rc < 0)"
+		} else {
 			pval->intval = rc;
+		}
 		break;
 	case OPLUS_CHG_PROP_TIME_TO_EMPTY_AVG:
 		pval->intval = 5000;
@@ -1591,6 +1593,7 @@ static int oplus_chg_intf_batt_get_prop(struct oplus_chg_mod *ocm,
 		break;
 	case OPLUS_CHG_PROP_MMI_CHARGING_ENABLE:
 		pval->intval = chip->mmi_chg;
+		rc = 0; // Natvrdo vynulujeme rc, aby to na konci souboru nespadlo do chyby
 		break;
 	case OPLUS_CHG_PROP_CAPACITY_LEVEL:
 		rc = oplus_chg_get_ui_soc();
